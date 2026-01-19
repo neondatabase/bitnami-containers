@@ -51,7 +51,7 @@ jobs:
         run: |
           sed -i "s@image: docker.io/bitnami/pgbouncer:1@image: neondatabase/pgbouncer:${GITHUB_RUN_ID}@g" docker-compose-prepared.yml
 
-          docker-compose -f docker-compose-prepared.yml up --detach
+          docker compose -f docker-compose-prepared.yml up --detach
           until pg_isready; do
             echo "Waiting..."
             sleep 1

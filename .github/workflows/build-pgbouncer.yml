@@ -44,8 +44,18 @@ jobs:
           path: bitnami/pgbouncer/1/debian-11/pgbouncer-git
           submodules: true
 
+      - name: Extract PgBouncer Version
+        id: pgbouncer-version
+        working-directory: bitnami/pgbouncer/1/debian-11/pgbouncer-git
+        run: |
+          APP_VERSION=$(autoconf --trace='AC_INIT:$2' configure.ac)
+          echo "APP_VERSION=${APP_VERSION}" | tee -a "${GITHUB_OUTPUT}"
+
       - name: Build PgBouncer Image
-        run: docker build --tag neondatabase/pgbouncer:${GITHUB_RUN_ID} .
+        env:
+          APP_VERSION: ${{ steps.pgbouncer-version.outputs.APP_VERSION }}
+        run: |
+          docker build --build-arg APP_VERSION=${APP_VERSION} --tag neondatabase/pgbouncer:${GITHUB_RUN_ID} .
 
       - name: Test PgBouncer Image
         run: |
@@ -79,12 +89,9 @@ jobs:
 
       - name: Push PgBouncer Image
         if: ${{ github.event.inputs.push-to-docker-registry == 'true' || github.ref_name == 'neon' }}
+        env:
+          APP_VERSION: ${{ steps.pgbouncer-version.outputs.APP_VERSION }}
         run: |
-          CID=$(docker create neondatabase/pgbouncer:${GITHUB_RUN_ID} /bin/bash -c 'echo $APP_VERSION > /tmp/APP_VERSION.txt')
-          docker start -i ${CID}
-          docker cp ${CID}:/tmp/APP_VERSION.txt ./APP_VERSION.txt
-          APP_VERSION=$(cat ./APP_VERSION.txt)
-
           PGBOUNCER_COMMIT=$(git -C pgbouncer-git rev-parse HEAD)
 
           TAG="${APP_VERSION}-${PGBOUNCER_COMMIT::12}-${GITHUB_RUN_ID}"

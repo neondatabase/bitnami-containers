@@ -22,6 +22,7 @@ RUN ./autogen.sh && \
 FROM docker.io/bitnami/minideb:bullseye
 
 ARG TARGETARCH
+ARG APP_VERSION
 
 ENV HOME="/" \
     OS_ARCH="${TARGETARCH:-amd64}" \
@@ -63,7 +64,7 @@ RUN echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && locale-gen
 COPY rootfs /
 RUN /opt/bitnami/scripts/locales/add-extra-locales.sh
 RUN /opt/bitnami/scripts/pgbouncer/postunpack.sh
-ENV APP_VERSION="1.22.0" \
+ENV APP_VERSION="${APP_VERSION}" \
     BITNAMI_APP_NAME="pgbouncer" \
     LANG="en_US.UTF-8" \
     LANGUAGE="en_US:en" \
